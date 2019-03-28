@@ -1,0 +1,69 @@
+SELECT pegawai.nik , pegawai.nama,
+       unit_kerja.kode, unit_kerja.nama as unit_kerja
+   FROM pegawai INNER JOIN unit_kerja
+       ON pegawai.unit_kerja_id= unit_kerja.id;
+
+
+SELECT P.nik , P.nama,
+       U.kode, U.nama as unit
+   FROM pegawai P INNER JOIN unit_kerja U
+       ON P.unit_kerja_id= U.id;
+
+-- Tampilkan statistik jumlah pegawai berdasarkan
+-- unit kerja
+
+SELECT unit_kerja.kode,unit_kerja.nama as unit_kerja,
+	    COUNT(pegawai.nik) as jumlah_pegawai
+   FROM pegawai RIGHT JOIN unit_kerja
+       ON pegawai.unit_kerja_id= unit_kerja.id
+
+   GROUP BY unit_kerja.kode,unit_kerja.nama;
+
+
+SELECT diklat.id,diklat.nama as diklat,
+COALESCE(materi.nama,'-') as materi 
+FROM diklat LEFT JOIN materi ON diklat.id=materi.diklat_id;
+
+-- CREATE VIEW 
+CREATE VIEW vw_narasumber 
+AS
+SELECT N.nama,N.tgl_lahir,
+       D.nama as diklat,
+       M.nama as materi,
+	   M.deskripsi ,
+       PD.jamlat, PD.nilai
+  FROM narasumber N INNER JOIN pengajar_diklat PD
+       ON N.id=PD.narasumber_id
+       INNER JOIN materi M
+       ON PD.materi_id = M.id 
+	   INNER JOIN diklat D 
+       ON M.diklat_id = D.id;
+
+CREATE VIEW vw_peserta_diklat
+AS
+SELECT P.nik,P.nama,U.nama as unit, D.nama as diklat,
+       PD.tahun,PD.angkatan,PED.total_nilai,PED.status
+ FROM pegawai P INNER JOIN unit_kerja U 
+       ON P.unit_kerja_id=U.id
+       INNER JOIN peserta_diklat PED 
+       ON P.nik = PED.pegawai_nik
+       INNER JOIN pelaksanaan_diklat PD 
+	   ON PED.peldiklat_id = PD.id 
+       INNER JOIN diklat D 
+	   ON PD.diklat_id = D.id ;
+
+CREATE VIEW vw_laporan_kehadiran
+AS
+SELECT D.nama as diklat,PD.tahun,PD.angkatan,
+       P.nik,P.nama,AD.tanggal,
+       IF(AD.sesi_1=1,'Hadir','Tidak Hadir') as sesi_1,
+       IF(AD.sesi_2=1,'Hadir','Tidak Hadir') as sesi_2
+	   FROM pegawai P INNER JOIN absensi_diklat AD 
+          ON P.nik = AD.pegawai_nik  
+          INNER JOIN pelaksanaan_diklat PD 
+          ON AD.peldiklat_id = PD.id 
+          INNER JOIN  diklat D 
+          ON PD.diklat_id= D.id;
+
+
+
